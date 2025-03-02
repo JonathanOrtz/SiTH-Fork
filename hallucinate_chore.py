@@ -12,8 +12,9 @@ from PIL import Image
 from tqdm.auto import tqdm
 from accelerate.utils import  set_seed
 from transformers import CLIPVisionModelWithProjection
+import torchvision.transforms.functional as TF
 from kornia.geometry.transform import get_affine_matrix2d, warp_affine
-
+import shutil
 
 from diffusers import (
     AutoencoderKL,
@@ -25,7 +26,7 @@ from diffusers import (
 from diffusers.utils import check_min_version
 from diffusers.utils.import_utils import is_xformers_available
 
-from diffusion.lib.test_diffusion_dataset_thuman import TestDiffDataset
+from diffusion.lib.test_diffusion_dataset_chore import TestDiffDataset
 from diffusion.lib.pipeline import BackHallucinationPipeline
 from diffusion.lib.ccprojection import CCProjection
 from diffusion.lib.utils import tensor_to_np, image_grid
@@ -77,7 +78,6 @@ def unwrap_v2(matrix,cropped_img):
     original_img_approx = TF.affine(cropped_img, angle=angle, translate=(trans_inv[0], trans_inv[1]), scale=scale, shear=shear)
 
     return original_img_approx
-
 def main(args):
     
     os.makedirs(args.output_path, exist_ok=True)
@@ -145,54 +145,42 @@ def main(args):
 
         else:
             raise ValueError("xformers is not available. Make sure it is installed correctly")
-
+    
     for i, data in enumerate(tqdm(val_dataloader)):
-        
-        fname = data['filename'][0]
-        print(fname)
-        if data['yes_diff']:
-            images = []
-            images.append(tensor_to_np(data['src_ori_image']))
-            # images.append(tensor_to_np(data['tgt_uv']))
-            
-            with torch.autocast("cuda"):
-                    im = pipeline.forward(args,  data,  generator, num_inference_steps=args.num_inference_steps,
-                    guidance_scale=args.guidance_scale, controlnet_conditioning_scale=args.conditioning_scale,
-                    num_images_per_prompt = args.num_validation_images
-                    )
-            
-            for j in range(args.num_validation_images):
-                rewarped_img=unwrap(torch.tensor(im[j]), data['M_crop'])
+        if i  in range(args.start_idx, args.end_idx):
+            fname = data['filename'][0]
+            if data['yes_diff']:
+                images = []
+                images.append(tensor_to_np(data['src_ori_image']))
+                # images.append(tensor_to_np(data['tgt_uv']))
+                
+
+                with torch.autocast("cuda"):
+                        im = pipeline.forward(args,  data,  generator, num_inference_steps=args.num_inference_steps,
+                        guidance_scale=args.guidance_scale, controlnet_conditioning_scale=args.conditioning_scale,
+                        num_images_per_prompt = args.num_validation_images
+                        )
+                for j in range(args.num_validation_images):
+                    rewarped_img=unwrap(torch.tensor(im[j]), data['M_crop'])
+                    image=rewarped_img.cpu().permute(0, 2, 3, 1).float().numpy()
+                    pil_img = Image.fromarray((image[0]*255).astype(np.uint8))
+                    # pil_img.save(os.path.join(logging_dir,  f"%s_%03d.png" % (fname, j)))
+                    os.makedirs(os.path.join(args.output_path, os.path.split(fname)[0]),exist_ok=True)
+                    # if j == 0:
+                    pil_img.save(os.path.join(args.output_path, os.path.split(fname)[0],f"%03d_%s" % (j,os.path.split(fname)[-1])))
+
+                    # images.append(im[j:j+1])
+
+                # grid = image_grid(images, 1/, args.num_validation_images +2 )
+                # grid.save(os.path.join(logging_dir, f"{fname}_all.png"))
+            else:
+                rewarped_img=unwrap(data['src_ori_image'], data['M_crop'])
                 image=rewarped_img.cpu().permute(0, 2, 3, 1).float().numpy()
                 pil_img = Image.fromarray((image[0] * 255).astype(np.uint8))
-                pil_img_part = Image.fromarray((im[j] * 255).astype(np.uint8))
-                # pil_img.save(os.path.join(logging_dir,  f"%s_%03d.png" % (fname, j)))
-                
                 os.makedirs(os.path.join(args.output_path, os.path.split(fname)[0]),exist_ok=True)
-                # if j == 0:
-                pil_img.save(os.path.join(args.output_path, os.path.split(fname)[0],f"%03d_%s" % (j,os.path.split(fname)[-1])))
-
-                #pil_img_part.save(os.path.join(args.output_path, os.path.split(fname)[0],f"%03d_cropped_%s" % (j,os.path.split(fname)[-1])))
-
-                # images.append(im[j:j+1])
-
-            # grid = image_grid(images, 1/, args.num_validation_images +2 )
-            # grid.save(os.path.join(logging_dir, f"{fname}_all.png"))
-        else:
-            rewarped_img=unwrap(data['src_ori_image'], data['M_crop'])
-            image=rewarped_img.cpu().permute(0, 2, 3, 1).float().numpy()
-            # image=tensor_to_np(data['src_ori_image'])
-            # print(image.shape)
-            pil_img = Image.fromarray((image[0] * 255).astype(np.uint8))
-            pil_img_part = Image.fromarray((im[j] * 255).astype(np.uint8))
-                # pil_img.save(os.path.join(logging_dir,  f"%s_%03d.png" % (fname, j)))
-            
-            os.makedirs(os.path.join(args.output_path, os.path.split(fname)[0]),exist_ok=True)
-            # if j == 0:
-            pil_img.save(os.path.join(args.output_path, os.path.split(fname)[0],f"%03d_%s" % (j,os.path.split(fname)[-1])))
-
-            #pil_img_part.save(os.path.join(args.output_path, os./path.split(fname)[0],f"%03d_cropped_%s" % (j,os.path.split(fname)[-1])))
-
+                
+                pil_img.save(os.path.join(args.output_path, os.path.split(fname)[0],f"%03d_%s" % (0,os.path.split(fname)[-1])))
+        
 
 
 if __name__ == "__main__":
@@ -265,6 +253,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--num_validation_images",
+        type=int,
+        default=1,
+        help="Number of images to be generated",
+    )
+    parser.add_argument(
+        "--start_idx",
+        type=int,
+        default=0,
+        help="Number of images to be generated",
+    )
+    parser.add_argument(
+        "--end_idx",
         type=int,
         default=1,
         help="Number of images to be generated",

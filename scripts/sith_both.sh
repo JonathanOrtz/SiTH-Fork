@@ -1,0 +1,3 @@
+#!/bin/bash
+wandb disabled;
+exec /mnt/fast/nobackup/users/mp01223/anaconda/envs/diffusion/bin/accelerate launch /mnt/fast/nobackup/scratch4weeks/mp01223/inpainting/SiTH/diffusion/train.py  --output_dir /mnt/fast/nobackup/scratch4weeks/mp01223/inpainting/cvpr1/sith_model --conditioning_channels 4 --both_cond --white_background --validation --config /mnt/fast/nobackup/scratch4weeks/mp01223/inpainting/SiTH/diffusion/config.yaml --input_path /mnt/fast/nobackup/scratch4weeks/mp01223/synHOI_inpainting_final/RENDER --input_path_test /mnt/fast/nobackup/scratch4weeks/mp01223/synHOI_inpainting_final_test_red/RENDER --batch_size 6 --exp_name both_cond --num_validation_images 5 --validation_steps 2500 --exp_name both_condition

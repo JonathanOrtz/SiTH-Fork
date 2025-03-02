@@ -35,8 +35,8 @@ import transformers
 from transformers import CLIPVisionModelWithProjection
 
 from lib.config import parse_options, argparse_to_str
-from lib.train_diffusion_dataset import TrainDiffDataset
-from lib.test_diffusion_dataset import TestDiffDataset
+from lib.train_obj_diffusion_dataset import TrainDiffDataset
+from lib.test_obj_diffusion_dataset import TestDiffDataset
 from lib.ccprojection import CCProjection
 from lib.utils import clip_encode_image_local, test_pipeline, log_validation
 
@@ -384,20 +384,10 @@ def main(args, args_str):
 
                 encoder_hidden_states = clip_encode_image_local(src_img, clip_image_encoder, refer_clip_proj)
 
-                tgt_normal = batch['tgt_normals']#.to(device=device, dtype=weight_dtype)
                 view_cond = batch['view_cond']#.to(device=device, dtype=weight_dtype) #what is this? prob direction
-                tgt_mask = batch['tgt_mask']#.to(device=device, dtype=weight_dtype)
                 inpaint_mask =  batch['inpaint_mask']
-                
 
-                if args.both_cond:
-                    controlnet_image = torch.cat([tgt_normal, inpaint_mask], dim=1)
-                elif args.only_mask:
-                    controlnet_image = tgt_mask
-                elif args.only_normal:
-                    controlnet_image = tgt_normal
-                else:
-                    controlnet_image = inpaint_mask
+                controlnet_image = inpaint_mask
 
 
                 if unet_input_channel == 8:

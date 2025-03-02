@@ -293,20 +293,11 @@ class BackHallucinationPipeline(
                 do_classifier_free_guidance=do_classifier_free_guidance).to(dtype=self.torch_dtype)
 
         # prepare controlnet input
-        tgt_normal = inputs['tgt_normals'].to(device=device, dtype=self.torch_dtype)
         inpaint_mask = inputs['inpaint_mask'].to(device=device, dtype=self.torch_dtype)
-        tgt_mask = inputs['tgt_mask'].to(device=device, dtype=self.torch_dtype)
 
-        batch_size, _, height, width = inputs['tgt_normals'].shape
+        batch_size, _, height, width = inputs['target_img'].shape
 
-        if args.both_cond:
-            cond_input = torch.cat([tgt_normal, tgt_mask], dim=1)
-        elif args.only_mask:
-            cond_input = tgt_mask
-        elif args.only_normal:
-            cond_input = tgt_normal
-        else:
-            cond_input = inpaint_mask
+        cond_input = inpaint_mask
 
         cond_input = cond_input.repeat_interleave(num_images_per_prompt, dim=0)
         if do_classifier_free_guidance and not guess_mode:

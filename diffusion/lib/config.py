@@ -61,9 +61,43 @@ def parse_options():
         ),
     )
     parser.add_argument(
+        "--both_cond",
+        action='store_true',
+        help=("wheter to run validation during training."
+        ),
+    )
+    parser.add_argument(
+        "--only_mask",
+        action='store_true',
+        help=("wheter to run validation during training."
+        ),
+    )
+    parser.add_argument(
+        "--only_normal",
+        action='store_true',
+        help=("wheter to run validation during training."
+        ),
+    )
+    parser.add_argument(
         "--dataloader_num_workers",
         type=int,
         default=0,
+        help=(
+            "Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
+        ),
+    )
+    parser.add_argument(
+        "--start_idx",
+        type=int,
+        default=0,
+        help=(
+            "Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
+        ),
+    )
+    parser.add_argument(
+        "--end_idx",
+        type=int,
+        default=1,
         help=(
             "Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
         ),
@@ -78,6 +112,25 @@ def parse_options():
         ),
     )
     dataset_group.add_argument(
+        "--input_path",
+        type=str,
+        default='',
+        help=(
+            "The resolution for input images, all the images in the train/validation dataset will be resized to this"
+            " resolution"
+        ),
+    )
+    dataset_group.add_argument(
+        "--input_path_test",
+        type=str,
+        default='',
+        help=(
+            "The resolution for input images, all the images in the train/validation dataset will be resized to this"
+            " resolution"
+        ),
+    )
+   
+    dataset_group.add_argument(
         "--sample_random_views",
         action="store_true",
         default=False,
@@ -85,7 +138,22 @@ def parse_options():
             "Whether to sample a random view pair for the training images. If False, only the back view will be used."
         ),
     )
-
+    dataset_group.add_argument(
+        "--create_normals",
+        action="store_true",
+        default=False,
+        help=(
+            "Whether to sample a random view pair for the training images. If False, only the back view will be used."
+        ),
+    )
+    dataset_group.add_argument(
+        "--create_depth",
+        action="store_true",
+        default=False,
+        help=(
+            "Whether to sample a random view pair for the training images. If False, only the back view will be used."
+        ),
+    )
     dataset_group.add_argument(
         "--white_background",
         action="store_true",
@@ -102,6 +170,12 @@ def parse_options():
 
     training_group.add_argument(
         "--train_batch_size", type=int, default=4, help="Batch size (per device) for the training dataloader."
+    )
+    training_group.add_argument(
+        "--batch_size", type=int, default=4, help="Batch size (per device) for the training dataloader."
+    )
+    training_group.add_argument(
+        "--num_workers", type=int, default=8, help="Batch size (per device) for the training dataloader."
     )
     training_group.add_argument("--num_train_epochs", type=int, default=100)
 

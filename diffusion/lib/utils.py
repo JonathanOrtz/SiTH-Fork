@@ -115,8 +115,8 @@ def test_pipeline(logger, test_dataloader, vae, clip_image_encoder, unet, contro
 
 
 
-def log_validation(logger, val_dataloader, vae, clip_image_encoder, unet, controlnet,
-                           scheduler, refer_clip_proj, args, accelerator, weight_dtype, step):
+def log_validation( logger, val_dataloader, vae, clip_image_encoder, unet, controlnet,
+                           scheduler, refer_clip_proj, args, accelerator, weight_dtype, step, save_path):
     logger.info("Running validation... ")
 
     controlnet = accelerator.unwrap_model(controlnet)
@@ -146,22 +146,67 @@ def log_validation(logger, val_dataloader, vae, clip_image_encoder, unet, contro
 
     image_logs = []
 
-    for i, data in enumerate(val_dataloader):      
+    for i, data in enumerate(val_dataloader):  
+        fname = data['filename'][0]    
 
         if i >=args.num_validation_images:
             break
-
+        
         with torch.autocast("cuda"):
-            ims = pipeline.forward(data, num_inference_steps=50, generator=generator,
+            ims = pipeline.forward(args, data, num_inference_steps=50, generator=generator,
                  guidance_scale=args.guidance_scale, controlnet_conditioning_scale=args.conditioning_scale,
                  num_images_per_prompt = args.num_gen_images
                 )
+            # print(len(ims))
+            images=[]
+            img=tensor_to_np(data['target_img'])
+                    # print(img.shape)
+            tgt=Image.fromarray((img[0]*255).astype(np.uint8))
+            images.append(img[0])
+            os.makedirs(os.path.join(save_path,str(step)),exist_ok=True)
+            tgt.save(os.path.join(save_path,str(step),  f"%s_gt.png" % (fname)))
+            for j in range(args.num_gen_images):
+                
+                
+                # print('porcodio',os.path.join(save_path,  f"%s_%03d_%03d_gt.png" % (fname, k//3,idx)))
+                # for j in range(args.num_validation_images):
+                # print('important', len(image),image[0].shape)
+                # print('0',image.shape)
+                # print(image.shape)
+                new_x=ims[j]
+
+                # print('diocane',new_x.shape, len(ims))
+                # print(new_x.shape, i)
+                # new_x_rec=xrec[:,i:i+3,...]
+                # new_x = self.to_rgb(new_x)
+                # # new_xrec = self.to_rgb(new_x_rec)
+                # log["inputs_{}".format(i)] = new_x
+                # log[\\\\\\\\\\\\"reconstructions_{}".format(i)] = new_x_rec
+                # print('1',new_x.shape)
+                # new_x = (new_x / 2 + 0.5).clamp(0, 1)
+                # print('2',new_x.shape)
+            # we always cast to float32 as this does not cause significant overhead and is compatible with bfloat16
+                # new_x = new_x.cpu().permute(0,2,3,1).float().numpy()
+                # print(new_x.shape)
+                pil_img = Image.fromarray((new_x * 255).astype(np.uint8))
+                # print(pil_img.size)
+                pil_img.save(os.path.join(save_path,str(step),  f"%s_%03d.png" % (fname, j)))
+                # if j == 0:
+                #     pil_img.save(os.path.join(args.output_path,  f"%s_%03d_%03d.png" % (fname, k//3, j)))
+                # print(new_x.shape)
+                # images.append(new_x[0])
+                # netG.esval()
+                # grid = image_grid(images, 1, len(images) )
+
+                # print(os.path.join(logging_dir, "{}_{}_{}_all.png".format(fname,k//3,epoch)))
+                # grid.save(os.path.join(save_path, "{}_{}_all.png".format(fname,j)))
+        
 
         image_logs.append(
             {
             "src_images" : tensor_to_np(data['src_image']),
-            "uv_images":  tensor_to_np(data['tgt_uv']),
-            "gt_images": tensor_to_np(data['tgt_image']),
+            # "uv_images":  tensor_to_np(data['tgt_uv']),
+            "gt_images": tensor_to_np(data['target_img']),
             "images": ims})
 
 
@@ -187,11 +232,11 @@ def log_validation(logger, val_dataloader, vae, clip_image_encoder, unet, contro
             for log in image_logs:
                 images = log["images"]
                 src_images = log["src_images"]
-                uv_images = log["uv_images"]
+                # uv_images = log["uv_images"]
                 tgt_images = log["gt_images"]
 
                 formatted_images.append(wandb.Image(tgt_images[0], caption="Ground truth images"))
-                formatted_images.append(wandb.Image(uv_images[0], caption="Controlnet uv images"))
+                # formatted_images.append(wandb.Image(uv_images[0], caption="Controlnet uv images"))
                 formatted_images.append(wandb.Image(src_images[0], caption="src_images"))
 
                 for i, image in enumerate(images):

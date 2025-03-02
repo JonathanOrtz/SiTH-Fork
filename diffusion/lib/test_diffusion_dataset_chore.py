@@ -18,8 +18,8 @@ import cv2
 import numpy as  np
 
 
-class TrainDiffDataset(Dataset):
-    def __init__(self, args,root, device, uv_template, size=512):
+class TestDiffDataset(Dataset):
+    def __init__(self, args,root, device, size=512):
         self.root = root
         self.img_size = size
 
@@ -112,20 +112,16 @@ class TrainDiffDataset(Dataset):
                     training_images_list_file_2=training_images_list_file
                     training_images_list_file_mod=training_images_list_file_2.replace('/RENDER_NORMAL/','/RENDER/')
                     if os.path.exists(os.path.join(training_images_list_file_mod,fold,sub_fold)):
-                        for i in range(0,180):
+                        # for i in range(0,36):
 
-                            if os.path.exists(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i))):
-                                paths.append(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i)))
+                            # if os.path.exists(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.jpg'.format(i))):
+                        paths.append(os.path.join(training_images_list_file,fold,sub_fold,os.listdir(os.path.join(training_images_list_file,fold,sub_fold))[0]))
                             # else:
                             #     paths.append(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i)))
                 else:
-                    for i in range(0,180):
-
-                        if os.path.exists(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i))):
-                            paths.append(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i)))
-                        # else:
-                        #     paths.append(os.path.join(training_images_list_file,fold,sub_fold,'k{}.person_rend_full.png'.format(i)))
-        # new_paths=paths[:-36]
+                    for el in os.listdir(os.path.join(training_images_list_file,fold,sub_fold)):
+                        paths.append(os.path.join(training_images_list_file,fold,sub_fold,el))
+        # paths[-3:]
         return paths
 
     def render_uv_map(self, camera, V, F, texv, texf, size):
@@ -236,15 +232,15 @@ class TrainDiffDataset(Dataset):
                 os.makedirs(folder2,exist_ok=True)
             
                 for vid in range(0,360,3):
-                    save_F=os.path.join(folder1,'front_img_{}.png'.format(vid))
-                    save_B=os.path.join(folder1,'back_img_{}.png'.format(vid))
-                    save_R=os.path.join(folder1,'right_img_{}.png'.format(vid))
-                    save_L=os.path.join(folder1,'left_img_{}.png'.format(vid))
+                    save_F=os.path.join(folder1,'front_img_{}.jpg'.format(vid))
+                    save_B=os.path.join(folder1,'back_img_{}.jpg'.format(vid))
+                    save_R=os.path.join(folder1,'right_img_{}.jpg'.format(vid))
+                    save_L=os.path.join(folder1,'left_img_{}.jpg'.format(vid))
 
-                    save_mask_F=os.path.join(folder2,'front_mask_{}.png'.format(vid))
-                    save_mask_B=os.path.join(folder2,'back_mask_{}.png'.format(vid))
-                    save_mask_R=os.path.join(folder2,'right_mask_{}.png'.format(vid))
-                    save_mask_L=os.path.join(folder2,'left_mask_{}.png'.format(vid))
+                    save_mask_F=os.path.join(folder2,'front_mask_{}.jpg'.format(vid))
+                    save_mask_B=os.path.join(folder2,'back_mask_{}.jpg'.format(vid))
+                    save_mask_R=os.path.join(folder2,'right_mask_{}.jpg'.format(vid))
+                    save_mask_L=os.path.join(folder2,'left_mask_{}.jpg'.format(vid))
 
                     if not  os.path.exists(save_R)  or not os.path.exists(save_L)or not os.path.exists(save_F)or not os.path.exists(save_B)or not os.path.exists(save_mask_F) or not os.path.exists(save_mask_R)or not os.path.exists(save_mask_L)or not os.path.exists(save_mask_B):
                         print(vid,save_F)
@@ -313,15 +309,15 @@ class TrainDiffDataset(Dataset):
         folder1=folder.replace('/SMPL/','/SMPL_NORMAL/')
         folder2=folder.replace('/SMPL/','/SMPL_MASK/')
 
-        save_F=os.path.join(folder1,'front_img_{}.png'.format(vid))
-        save_B=os.path.join(folder1,'back_img_{}.png'.format(vid))
-        save_R=os.path.join(folder1,'right_img_{}.png'.format(vid))
-        save_L=os.path.join(folder1,'left_img_{}.png'.format(vid))
+        save_F=os.path.join(folder1,'front_img_{}.jpg'.format(vid))
+        save_B=os.path.join(folder1,'back_img_{}.jpg'.format(vid))
+        save_R=os.path.join(folder1,'right_img_{}.jpg'.format(vid))
+        save_L=os.path.join(folder1,'left_img_{}.jpg'.format(vid))
 
-        save_mask_F=os.path.join(folder2,'front_mask_{}.png'.format(vid))
-        save_mask_B=os.path.join(folder2,'back_mask_{}.png'.format(vid))
-        save_mask_R=os.path.join(folder2,'right_mask_{}.png'.format(vid))
-        save_mask_L=os.path.join(folder2,'left_mask_{}.png'.format(vid))
+        save_mask_F=os.path.join(folder2,'front_mask_{}.jpg'.format(vid))
+        save_mask_B=os.path.join(folder2,'back_mask_{}.jpg'.format(vid))
+        save_mask_R=os.path.join(folder2,'right_mask_{}.jpg'.format(vid))
+        save_mask_L=os.path.join(folder2,'left_mask_{}.jpg'.format(vid))
         
         
         normal_front =Image.open(save_F).convert('RGB')
@@ -334,7 +330,7 @@ class TrainDiffDataset(Dataset):
         normal_left_mask =Image.open(save_mask_L).convert('L')
         
         return normal_front, normal_front_mask, normal_back, normal_back_mask, normal_right, normal_right_mask, normal_left, normal_left_mask
-        
+    
     def __getitem__(self, index):
 
 
@@ -369,18 +365,18 @@ class TrainDiffDataset(Dataset):
         # final_list_clip=[]
         final_list_rgb=[]
         # for idx, ids in enumerate(view_ids):
-        #     new_path=os.path.join(path_orig,'{}_0_00.png'.format(ids))
+        #     new_path=os.path.join(path_orig,'{}_0_00.jpg'.format(ids))
 
         #     if '/RENDER/' in new_path:
         #         mask_path=new_path.replace('/RENDER/','/MASK/')
         #         if not os.path.exists(mask_path):
         #             mask_path=mask_path[:-3]+'png'
         #         if not os.path.exists(mask_path):
-        #             mask_path=mask_path[:-3]+'png'
+        #             mask_path=mask_path[:-3]+'jpg'
         #     elif '/RENDER_NORMAL/' in new_path:
         #         mask_path=new_path.replace('/RENDER_NORMAL/','/MASK/')
         #         if not os.path.exists(mask_path):
-        #             mask_path=mask_path[:-3]+'png'
+        #             mask_path=mask_path[:-3]+'jpg'
         #         if not os.path.exists(mask_path):
         #             mask_path=mask_path[:-3]+'png'
         
@@ -428,11 +424,11 @@ class TrainDiffDataset(Dataset):
             if not os.path.exists(mask_path):
                 mask_path=mask_path[:-3]+'png'
             if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
+                mask_path=mask_path[:-3]+'jpg'
         elif '/RENDER_NORMAL/' in new_path:
             mask_path=new_path.replace('/RENDER_NORMAL/','/MASK_PARTIAL/')
             if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
+                mask_path=mask_path[:-3]+'jpg'
             if not os.path.exists(mask_path):
                 mask_path=mask_path[:-3]+'png'
         image = Image.open(new_path)
@@ -457,11 +453,11 @@ class TrainDiffDataset(Dataset):
         #     if not os.path.exists(mask_path):
         #         mask_path=mask_path[:-3]+'png'
         #     if not os.path.exists(mask_path):
-        #         mask_path=mask_path[:-3]+'png'
+        #         mask_path=mask_path[:-3]+'jpg'
         # elif '/RENDER_NORMAL/' in new_path:
         #     mask_path=new_path.replace('/RENDER_NORMAL/','/MASK/')
         #     if not os.path.exists(mask_path):
-        #         mask_path=mask_path[:-3]+'png'
+        #         mask_path=mask_path[:-3]+'jpg'
         #     if not os.path.exists(mask_path):
         #         mask_path=mask_path[:-3]+'png'
 
@@ -482,15 +478,15 @@ class TrainDiffDataset(Dataset):
         image_new = Image.open(new_path)
 
         if '/RENDER/' in new_path:
-            mask_path=new_path.replace('/RENDER/','/MASK/')
+            mask_path=new_path.replace('/RENDER/','/MASK_COMBINED/')
             if not os.path.exists(mask_path):
                 mask_path=mask_path[:-3]+'png'
             if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
+                mask_path=mask_path[:-3]+'jpg'
         elif '/RENDER_NORMAL/' in new_path:
-            mask_path=new_path.replace('/RENDER_NORMAL/','/MASK/')
+            mask_path=new_path.replace('/RENDER_NORMAL/','/MASK_COMBINED/')
             if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
+                mask_path=mask_path[:-3]+'jpg'
             if not os.path.exists(mask_path):
                 mask_path=mask_path[:-3]+'png'
         mask_new = Image.open(mask_path).convert('L')
@@ -518,11 +514,11 @@ class TrainDiffDataset(Dataset):
             if not os.path.exists(mask_smpl_path):
                 mask_smpl_path=mask_smpl_path[:-3]+'png'
             if not os.path.exists(mask_path):
-                mask_smpl_path=mask_smpl_path[:-3]+'png'
+                mask_smpl_path=mask_smpl_path[:-3]+'jpg'
         elif '/RENDER_NORMAL/' in new_path:
             mask_smpl_path=new_path.replace('/RENDER_NORMAL/','/SMPL_MASK/')
             if not os.path.exists(mask_smpl_path):
-                mask_smpl_path=mask_smpl_path[:-3]+'png'
+                mask_smpl_path=mask_smpl_path[:-3]+'jpg'
             if not os.path.exists(mask_smpl_path):
                 mask_smpl_path=mask_smpl_path[:-3]+'png'
 
@@ -531,19 +527,58 @@ class TrainDiffDataset(Dataset):
             if not os.path.exists(mask_normal_path):
                 mask_normal_path=mask_normal_path[:-3]+'png'
             if not os.path.exists(mask_normal_path):
-                mask_normal_path=mask_normal_path[:-3]+'png'
+                mask_normal_path=mask_normal_path[:-3]+'jpg'
         elif '/RENDER_NORMAL/' in new_path:
             mask_normal_path=new_path.replace('/RENDER_NORMAL/','/SMPL_NORMAL/')
             if not os.path.exists(mask_normal_path):
-                mask_normal_path=mask_normal_path[:-3]+'png'
+                mask_normal_path=mask_normal_path[:-3]+'jpg'
             if not os.path.exists(mask_smpl_path):
                 mask_normal_path=mask_normal_path[:-3]+'png'
 
-
+        if '/RENDER/' in new_path:
+            mask_path=new_path.replace('/RENDER/','/MASK_DIFFERENCE/')
+            if not os.path.exists(mask_path):
+                mask_path=mask_path[:-3]+'png'
+            if not os.path.exists(mask_path):
+                mask_path=mask_path[:-3]+'jpg'
+        elif '/RENDER_NORMAL/' in new_path:
+            mask_path=new_path.replace('/RENDER_NORMAL/','/MASK_DIFFERENCE/')
+            if not os.path.exists(mask_path):
+                mask_path=mask_path[:-3]+'jpg'
+            if not os.path.exists(mask_path):
+                mask_path=mask_path[:-3]+'png'
+        mask_diff = Image.open(mask_path).convert('L')
+        # mask_diff[mask_diff<127]=0
+        # mask_diff[mask_diff>=127]=255
+        mask_rgb_diff = self.transform_rgba_mask(mask_diff)
+        # mask_rgb_diff[mask_rgb_diff<127]=0
+        # mask_rgb_diff[mask_rgb_diff>=127]=255
+        all_zeros = (mask_rgb_diff == 0).all()
+        # if all_zeros.item():
+        if torch.count_nonzero(mask_rgb_diff)<50:
+            print('no diffusion needed:', torch.count_nonzero(mask_rgb_diff),mask_rgb_diff.shape)
+            yes_diff=False
+        else:
+            print('diffusion needed:', torch.count_nonzero(mask_rgb_diff),mask_rgb_diff.shape)
+            yes_diff=True
+        
         normal_left = Image.open(mask_normal_path)
         normal_left_mask = Image.open(mask_smpl_path).convert('L')
 
+        if '/RENDER/' in new_path:
+            math_path=new_path.replace('/RENDER/','/MATRICES/')
+            if not os.path.exists(math_path):
+                math_path=math_path[:-3]+'npy'
+            # if not os.path.exists(mask_path):
+            #     mask_path=mask_path[:-3]+'jpg'
+        elif '/RENDER_NORMAL/' in new_path:
+            math_path=math_path.replace('/RENDER_NORMAL/','/MATRICES/')
+            if not os.path.exists(mask_path):
+                math_path=math_path[:-3]+'npy'
+            # if not os.path.exists(mask_path):
+            #     mask_path=mask_path[:-3]+'png'
 
+        matrices=np.load(math_path)
         # normal_front, normal_front_mask, normal_back, normal_back_mask, normal_right, normal_right_mask, normal_left, normal_left_mask = self.load_smpl(smpl_path,smpl_param,vid_orig)
         # uv = self.render_uv_map(self.camera, V.to(self.device), F.to(self.device), self.texv, self.texf, self.img_size)
         
@@ -564,22 +599,6 @@ class TrainDiffDataset(Dataset):
         masks_guide=normal_left_mask
         normals_guide=normal_left
 
-
-        if '/RENDER/' in new_path:
-            mask_path=new_path.replace('/RENDER/','/MASK_DIFFERENCE/')
-            if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
-            if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
-        elif '/RENDER_NORMAL/' in new_path:
-            mask_path=new_path.replace('/RENDER_NORMAL/','/MASK_DIFFERENCE/')
-            if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
-            if not os.path.exists(mask_path):
-                mask_path=mask_path[:-3]+'png'
-        mask_diff = Image.open(mask_path).convert('L')
-        mask_rgb_diff = self.transform_rgba_mask(mask_diff)
-        
         # tgt_image = self.augment_random_background(tgt_rgb, tgt_mask)
 
         # tgt_uv[..., :2] = uv[0].cpu()
@@ -603,12 +622,14 @@ class TrainDiffDataset(Dataset):
         return {'src_ori_image': src_image,
                 'src_image': src_clip_image,
                 'target_img': target,
-                'inpaint_mask': mask_rgb_diff,
                 # 'tgt_uv':  tgt_uv.permute(2,0,1) * 2. - 1,
+                'M_crop': torch.from_numpy(matrices),
+                'inpaint_mask': mask_rgb_diff,
                 'tgt_normals':normals_guide,
                 'tgt_mask': masks_guide,
+                'yes_diff':yes_diff,
                 'view_cond': view_cond,
-                'filename': self.subject_list[index].split('/')[-3]+'/' +self.subject_list[index].split('/')[-2]+'/'+self.subject_list[index].split('/')[-1]
+                'filename':self.subject_list[index].split('/')[-3]+'/' +self.subject_list[index].split('/')[-2]+'/'+self.subject_list[index].split('/')[-1]
         }
 
     def __len__(self):
