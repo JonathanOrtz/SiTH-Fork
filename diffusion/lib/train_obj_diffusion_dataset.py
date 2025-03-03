@@ -239,20 +239,20 @@ class TrainDiffDataset(Dataset):
         image_rgb = self.transform_rgba(image_crop)
         mask_rgb = self.transform_rgba_mask(partial_mask_crop)
         src_image = image_rgb * mask_rgb
-        print('src_image:',src_image.shape)
+        #print('src_image:',src_image.shape)
 
         rgb_clip = self.transform_clip(image_crop)
         mask_clip = self.transform_clip_mask(partial_mask_crop)
         src_clip_image = rgb_clip * mask_clip
-        print('src_clip_image:', src_clip_image.shape)
+        #print('src_clip_image:', src_clip_image.shape)
 
         image_rgb_tgt = self.transform_rgba(tgt_image_crop)
         mask_rgb_tgt = self.transform_rgba_mask(mask_crop)
         target = image_rgb_tgt * mask_rgb_tgt
-        print('target:', target.shape)
+        #print('target:', target.shape)
 
         mask_rgb_diff = self.transform_rgba_mask(mask_diff_crop)
-        print('mask_rgb_diff:', mask_rgb_diff.shape)
+        #print('mask_rgb_diff:', mask_rgb_diff.shape)
 
         # view condition is always the same for back images
         view_cond = torch.stack(

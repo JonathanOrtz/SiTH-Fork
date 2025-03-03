@@ -228,7 +228,7 @@ class TestDiffDataset(Dataset):
         mask_diff_np = mask_np - partial_mask_np
         mask_diff_np[mask_diff_np < 0] = 0
 
-        crop_resize_fn, M_crop = imutils.crop_and_resize_bbox(self.img_size, mask=[mask_np])
+        crop_resize_fn, M_crop = crop_and_resize_bbox(self.img_size, mask=[mask_np])
         image_crop = crop_resize_fn(image_np)
         tgt_image_crop = crop_resize_fn(tgt_image_np)
         mask_crop = crop_resize_fn(mask_np)
@@ -238,20 +238,20 @@ class TestDiffDataset(Dataset):
         image_rgb = self.transform_rgba(image_crop)
         mask_rgb = self.transform_rgba_mask(partial_mask_crop)
         src_image = image_rgb * mask_rgb
-        print('src_image:',src_image.shape)
+        #print('src_image:',src_image.shape)
 
         rgb_clip = self.transform_clip(image_crop)
         mask_clip = self.transform_clip_mask(partial_mask_crop)
         src_clip_image = rgb_clip * mask_clip
-        print('src_clip_image:', src_clip_image.shape)
+        #print('src_clip_image:', src_clip_image.shape)
 
         image_rgb_tgt = self.transform_rgba(tgt_image_crop)
         mask_rgb_tgt = self.transform_rgba_mask(mask_crop)
         target = image_rgb_tgt * mask_rgb_tgt
-        print('target:', target.shape)
+        #print('target:', target.shape)
 
         mask_rgb_diff = self.transform_rgba_mask(mask_diff_crop)
-        print('mask_rgb_diff:', mask_rgb_diff.shape)
+        #print('mask_rgb_diff:', mask_rgb_diff.shape)
 
         # view condition is always the same for back images
         view_cond = torch.stack(
