@@ -10,7 +10,7 @@ import wandb
 from diffusers import (
     UniPCMultistepScheduler,
 )
-from .pipeline import BackHallucinationPipeline
+from .pipeline_obj_diffusion import BackHallucinationPipeline
 
 def tensor_to_np(image):
     image = (image / 2 + 0.5).clamp(0, 1)
