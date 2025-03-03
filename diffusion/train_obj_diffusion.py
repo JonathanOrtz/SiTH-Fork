@@ -99,7 +99,7 @@ def main(args, args_str):
     ##################  Dataset preparation ##################
     device = accelerator.device #torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    train_dataset = TrainDiffDataset(args, args.input_path, device, UV_TEMPLATE, size=args.resolution)
+    train_dataset = TrainDiffDataset(args, args.input_path, device, size=args.resolution)
 
     train_dataloader =  torch.utils.data.DataLoader(dataset=train_dataset, 
                         batch_size=args.batch_size, 
