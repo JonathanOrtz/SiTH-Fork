@@ -267,7 +267,7 @@ class TestDiffDataset(Dataset):
                 'inpaint_mask': mask_rgb_diff,
                 # 'tgt_uv':  tgt_uv.permute(2,0,1) * 2. - 1,
                 'view_cond': view_cond,
-                'filename': self.subject_list[index].split('/')[-3]+'/' +self.subject_list[index].split('/')[-2]+'/'+self.subject_list[index].split('/')[-1]
+                'filename': self.subject_list[index].split('/')[-3]+'_' +self.subject_list[index].split('/')[-2]+'_'+self.subject_list[index].split('/')[-1]
         }
 
     def __len__(self):
