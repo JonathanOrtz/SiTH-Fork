@@ -165,7 +165,7 @@ def crop_bbox_from_PIL(image, bbox):
     return bg
 
 class TrainDiffDataset(Dataset):
-    def __init__(self, args,root, device, uv_template, size=512):
+    def __init__(self, args,root, device, size=512):
         self.root = root
         self.img_size = size
 
