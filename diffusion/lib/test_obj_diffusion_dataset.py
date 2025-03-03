@@ -177,32 +177,33 @@ class TestDiffDataset(Dataset):
         self.num_subjects = len(self.subject_list)
 
         self.transform= transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.ToTensor(),
+            transforms.Resize((self.img_size, self.img_size), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
         ])
 
         self.transform_rgba= transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.ToTensor(),
+            transforms.Resize((self.img_size, self.img_size), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
         ])
 
         self.transform_rgba_mask= transforms.Compose([
+            transforms.ToTensor(),
             transforms.Resize((self.img_size, self.img_size), interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.ToTensor(),  ])
+        ])
 
 
         self.transform_clip = transforms.Compose([
-            transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.ToTensor(),
+            transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.Normalize([0.48145466, 0.4578275, 0.40821073],
                                  [0.26862954, 0.26130258, 0.27577711]),
         ])
 
         self.transform_clip_mask = transforms.Compose([
-            transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.ToTensor(),
+            transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BILINEAR),
         ])
 
     def augment_random_background(self, image, mask):
