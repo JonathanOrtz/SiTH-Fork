@@ -110,8 +110,8 @@ def main(args, args_str):
     test_dataset = TestDiffDataset(args, args.input_path_test,device, size=args.resolution)
     # print(len(test_dataset))
     val_dataloader =  torch.utils.data.DataLoader(dataset=test_dataset, 
-                        batch_size=1, 
-                        shuffle=False, 
+                        batch_size=1,
+                        shuffle=True,
                         num_workers=1,
                         pin_memory=True)
 

@@ -12,8 +12,9 @@ from diffusers import (
 )
 from .pipeline_obj_diffusion import BackHallucinationPipeline
 
-def tensor_to_np(image):
-    image = (image / 2 + 0.5).clamp(0, 1)
+def tensor_to_np(image, mask=False):
+    if not mask:
+        image = (image / 2 + 0.5).clamp(0, 1)
     # we always cast to float32 as this does not cause significant overhead and is compatible with bfloat16
     image = image.cpu().permute(0, 2, 3, 1).float().numpy()
     return image
@@ -160,11 +161,17 @@ def log_validation( logger, val_dataloader, vae, clip_image_encoder, unet, contr
             # print(len(ims))
             images=[]
             img=tensor_to_np(data['target_img'])
+            src_img = tensor_to_np(data['src_ori_image'])
+            mask_img = tensor_to_np(data['inpaint_mask'], mask=True)
                     # print(img.shape)
             tgt=Image.fromarray((img[0]*255).astype(np.uint8))
+            src_img_pil = Image.fromarray((src_img[0] * 255).astype(np.uint8))
+            mask_pil = Image.fromarray((mask_img[0] * 255).astype(np.uint8))
             images.append(img[0])
             os.makedirs(os.path.join(save_path,str(step)),exist_ok=True)
             tgt.save(os.path.join(save_path,str(step),  f"%s_gt.png" % (fname)))
+            src_img_pil.save(os.path.join(save_path,str(step),  f"%s_input_img.png" % (fname)))
+            mask_pil.save(os.path.join(save_path,str(step),  f"%s_inpaint_mask.png" % (fname)))
             for j in range(args.num_gen_images):
                 
                 
