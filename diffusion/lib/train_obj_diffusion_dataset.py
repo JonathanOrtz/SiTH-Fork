@@ -1,6 +1,8 @@
-import os 
+import os
+import os.path as osp
 import math
 import glob
+import json
 
 import PIL.Image as Image
 import numpy as np
@@ -166,14 +168,13 @@ def crop_bbox_from_PIL(image, bbox):
 
 class TrainDiffDataset(Dataset):
     def __init__(self, args,root, device, size=512):
-        self.root = root
+        self.data_dirs = root
         self.img_size = size
-
         self.device=device
         self.args=args
 
         # RGBA
-        self.subject_list = self.get_subjects(self.root)
+        self.subject_list = self.get_subjects()
         self.num_subjects = len(self.subject_list)
 
         self.transform= transforms.Compose([
@@ -212,47 +213,52 @@ class TrainDiffDataset(Dataset):
         bg = torch.ones_like(image) * bg_color.view(3,1,1)
         return image * mask + bg * (1 - mask)
 
-    def get_subjects(self, data_dir):
-        paths = glob.glob(f'{data_dir}/*/f*/*.color.jpg')
+    def get_subjects(self):
+        paths = glob.glob(f'{self.data_dirs[1]}/*/t*/*.obj_rend_full.png')
         return paths
 
     def __getitem__(self, index):
+        image_path_1 = self.subject_list[index]
+        image_name = osp.basename(image_path_1)
+        frame_dir_1 = osp.dirname(image_path_1)
+        frame_id = osp.basename(frame_dir_1)
+        seq_dir_1 = osp.dirname(frame_dir_1)
+        seq_name = osp.basename(seq_dir_1)
+        info_file_1 = osp.join(self.data_dirs[1], seq_name, frame_id, 'info.json')
+        occ_ratio = 0
+        if osp.exists(info_file_1):
+            with open(info_file_1, 'r') as f:
+                occ_ratio = json.load(f)['occ_ratio']
 
-        image_path = self.subject_list[index]
-        mask_path = image_path.replace('.color.jpg', '.obj_rend_full.png')
-        partial_mask_path = image_path.replace('.color.jpg', '.obj_mask_m.jpg')
-
-        image_np = np.array(Image.open(image_path).convert('RGB'))
-        tgt_image_np = np.array(Image.open(mask_path).convert('RGB'))
-        mask_np = np.array(Image.open(mask_path).split()[-1])
-        partial_mask_np = np.array(Image.open(partial_mask_path).convert('L'))
-        mask_diff_np = mask_np - partial_mask_np
-        mask_diff_np[mask_diff_np < 0] = 0
-
-        crop_resize_fn, M_crop = crop_and_resize_bbox(self.img_size, mask=[mask_np])
-        image_crop = crop_resize_fn(image_np)
+        tgt_image_np = np.array(Image.open(image_path_1).convert('RGB'))
+        tgt_mask_np = np.array(Image.open(image_path_1).split()[-1])
+        crop_resize_fn, M_crop = crop_and_resize_bbox(self.img_size, mask=[tgt_mask_np])
         tgt_image_crop = crop_resize_fn(tgt_image_np)
-        mask_crop = crop_resize_fn(mask_np)
-        partial_mask_crop = crop_resize_fn(partial_mask_np)
-        mask_diff_crop = crop_resize_fn(mask_diff_np)
-
-        image_rgb = self.transform_rgba(image_crop)
-        mask_rgb = self.transform_rgba_mask(partial_mask_crop)
-        src_image = image_rgb * mask_rgb
-        #print('src_image:',src_image.shape)
-
-        rgb_clip = self.transform_clip(image_crop)
-        mask_clip = self.transform_clip_mask(partial_mask_crop)
-        src_clip_image = rgb_clip * mask_clip
-        #print('src_clip_image:', src_clip_image.shape)
-
+        tgt_mask_crop = crop_resize_fn(tgt_mask_np)
         image_rgb_tgt = self.transform_rgba(tgt_image_crop)
-        mask_rgb_tgt = self.transform_rgba_mask(mask_crop)
+        rgb_clip = self.transform_clip(tgt_image_crop)
+        mask_rgb_tgt = self.transform_rgba_mask(tgt_mask_crop)
         target = image_rgb_tgt * mask_rgb_tgt
-        #print('target:', target.shape)
 
-        mask_rgb_diff = self.transform_rgba_mask(mask_diff_crop)
-        #print('mask_rgb_diff:', mask_rgb_diff.shape)
+        rng_choice = np.random.choice(2, 1)[0] if occ_ratio > 0.1 and occ_ratio < 0.7 else 1
+        if rng_choice == 0:
+            partial_mask_path = osp.join(self.data_dirs[0], seq_name, frame_id, image_name.replace('.obj_rend_full.png', '.obj_rend_mask.jpg'))
+            if not osp.isfile(partial_mask_path):
+                partial_mask_path = osp.join(self.data_dirs[0], seq_name, frame_id, image_name.replace('.obj_rend_full.png', '.obj_rend_mask.png'))
+                partial_mask_np = np.array(Image.open(partial_mask_path).convert('L'))
+                partial_mask_crop = crop_resize_fn(partial_mask_np)
+                mask_rgb = self.transform_rgba_mask(partial_mask_crop)
+                mask_clip = self.transform_clip_mask(partial_mask_crop)
+        else: # random erasing
+            mask_rgb = kornia.augmentation.RandomErasing(
+                p=1.0, scale=(0.01, 0.2), ratio=(0.3, 3.3), keepdim=True)(mask_rgb_tgt)
+            mask_clip = self.transform_clip_mask((mask_rgb.numpy() * 255).astype(np.uint8))
+
+        mask_rgb_diff = mask_rgb_tgt - mask_rgb
+        mask_rgb_diff[mask_rgb_diff < 0] = 0
+
+        src_image = image_rgb_tgt * mask_rgb
+        src_clip_image = rgb_clip * mask_clip
 
         # view condition is always the same for back images
         view_cond = torch.stack(

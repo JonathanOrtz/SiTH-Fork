@@ -114,6 +114,7 @@ def parse_options():
     dataset_group.add_argument(
         "--input_path",
         type=str,
+        nargs='+',
         default='',
         help=(
             "The resolution for input images, all the images in the train/validation dataset will be resized to this"
@@ -123,6 +124,7 @@ def parse_options():
     dataset_group.add_argument(
         "--input_path_test",
         type=str,
+        nargs='+',  # Accepts one or more values
         default='',
         help=(
             "The resolution for input images, all the images in the train/validation dataset will be resized to this"

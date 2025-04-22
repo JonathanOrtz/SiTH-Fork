@@ -153,7 +153,7 @@ def log_validation( logger, val_dataloader, vae, clip_image_encoder, unet, contr
         if i >=args.num_validation_images:
             break
         
-        with torch.autocast("cuda"):
+        with torch.autocast("cuda")::
             ims = pipeline.forward(args, data, num_inference_steps=50, generator=generator,
                  guidance_scale=args.guidance_scale, controlnet_conditioning_scale=args.conditioning_scale,
                  num_images_per_prompt = args.num_gen_images

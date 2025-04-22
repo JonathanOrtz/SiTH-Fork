@@ -489,7 +489,7 @@ def main(args, args_str):
                         torch.cuda.empty_cache()
                         _ = test_pipeline(
                             logger,
-                            test_dataloader,
+                            val_dataloader,
                             vae,
                             clip_image_encoder,
                             unet,
