@@ -235,9 +235,14 @@ class TrainDiffDataset(Dataset):
         crop_resize_fn, M_crop = crop_and_resize_bbox(self.img_size, mask=[tgt_mask_np])
         tgt_image_crop = crop_resize_fn(tgt_image_np)
         tgt_mask_crop = crop_resize_fn(tgt_mask_np)
+        #print(f'tgt_image_crop: {tgt_image_crop.shape}')
+        #print(f'tgt_mask_crop: {tgt_mask_crop.shape}')
         image_rgb_tgt = self.transform_rgba(tgt_image_crop)
         rgb_clip = self.transform_clip(tgt_image_crop)
         mask_rgb_tgt = self.transform_rgba_mask(tgt_mask_crop)
+        #print(f'image_rgb_tgt: {image_rgb_tgt.shape}')
+        #print(f'rgb_clip: {rgb_clip.shape}')
+        #print(f'mask_rgb_tgt: {mask_rgb_tgt.shape}')
         target = image_rgb_tgt * mask_rgb_tgt
 
         rng_choice = np.random.choice(2, 1)[0] if occ_ratio > 0.1 and occ_ratio < 0.7 else 1
@@ -249,10 +254,14 @@ class TrainDiffDataset(Dataset):
             partial_mask_crop = crop_resize_fn(partial_mask_np)
             mask_rgb = self.transform_rgba_mask(partial_mask_crop)
             mask_clip = self.transform_clip_mask(partial_mask_crop)
+            #print(f'0, mask_rgb: {mask_rgb.shape}')
+            #print(f'0, mask_clip: {mask_clip.shape}')
         else: # random erasing
             mask_rgb = kornia.augmentation.RandomErasing(
                 p=1.0, scale=(0.01, 0.2), ratio=(0.3, 3.3), keepdim=True)(mask_rgb_tgt)
-            mask_clip = self.transform_clip_mask((mask_rgb.numpy() * 255).astype(np.uint8))
+            mask_clip = self.transform_clip_mask((mask_rgb[0].numpy() * 255).astype(np.uint8))
+            #print(f'1, mask_rgb: {mask_rgb.shape}')
+            #print(f'1, mask_clip: {mask_clip.shape}')
 
         mask_rgb_diff = mask_rgb_tgt - mask_rgb
         mask_rgb_diff[mask_rgb_diff < 0] = 0

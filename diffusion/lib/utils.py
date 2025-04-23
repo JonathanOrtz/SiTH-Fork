@@ -153,7 +153,7 @@ def log_validation( logger, val_dataloader, vae, clip_image_encoder, unet, contr
         if i >=args.num_validation_images:
             break
         
-        with torch.autocast("cuda")::
+        with torch.autocast("cuda"):
             ims = pipeline.forward(args, data, num_inference_steps=50, generator=generator,
                  guidance_scale=args.guidance_scale, controlnet_conditioning_scale=args.conditioning_scale,
                  num_images_per_prompt = args.num_gen_images
@@ -163,10 +163,9 @@ def log_validation( logger, val_dataloader, vae, clip_image_encoder, unet, contr
             img=tensor_to_np(data['target_img'])
             src_img = tensor_to_np(data['src_ori_image'])
             mask_img = tensor_to_np(data['inpaint_mask'], mask=True)
-                    # print(img.shape)
             tgt=Image.fromarray((img[0]*255).astype(np.uint8))
             src_img_pil = Image.fromarray((src_img[0] * 255).astype(np.uint8))
-            mask_pil = Image.fromarray((mask_img[0] * 255).astype(np.uint8))
+            mask_pil = Image.fromarray((mask_img[0, :, :, 0] * 255).astype(np.uint8))
             images.append(img[0])
             os.makedirs(os.path.join(save_path,str(step)),exist_ok=True)
             tgt.save(os.path.join(save_path,str(step),  f"%s_gt.png" % (fname)))

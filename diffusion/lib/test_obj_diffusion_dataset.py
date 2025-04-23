@@ -252,7 +252,7 @@ class TestDiffDataset(Dataset):
         else: # random erasing
             mask_rgb = kornia.augmentation.RandomErasing(
                 p=1.0, scale=(0.01, 0.2), ratio=(0.3, 3.3), keepdim=True)(mask_rgb_tgt)
-            mask_clip = self.transform_clip_mask((mask_rgb.numpy() * 255).astype(np.uint8))
+            mask_clip = self.transform_clip_mask((mask_rgb[0].numpy() * 255).astype(np.uint8))
 
         mask_rgb_diff = mask_rgb_tgt - mask_rgb
         mask_rgb_diff[mask_rgb_diff < 0] = 0
