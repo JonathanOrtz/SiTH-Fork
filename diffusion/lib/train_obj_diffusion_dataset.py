@@ -245,10 +245,10 @@ class TrainDiffDataset(Dataset):
             partial_mask_path = osp.join(self.data_dirs[0], seq_name, frame_id, image_name.replace('.obj_rend_full.png', '.obj_rend_mask.jpg'))
             if not osp.isfile(partial_mask_path):
                 partial_mask_path = osp.join(self.data_dirs[0], seq_name, frame_id, image_name.replace('.obj_rend_full.png', '.obj_rend_mask.png'))
-                partial_mask_np = np.array(Image.open(partial_mask_path).convert('L'))
-                partial_mask_crop = crop_resize_fn(partial_mask_np)
-                mask_rgb = self.transform_rgba_mask(partial_mask_crop)
-                mask_clip = self.transform_clip_mask(partial_mask_crop)
+            partial_mask_np = np.array(Image.open(partial_mask_path).convert('L'))
+            partial_mask_crop = crop_resize_fn(partial_mask_np)
+            mask_rgb = self.transform_rgba_mask(partial_mask_crop)
+            mask_clip = self.transform_clip_mask(partial_mask_crop)
         else: # random erasing
             mask_rgb = kornia.augmentation.RandomErasing(
                 p=1.0, scale=(0.01, 0.2), ratio=(0.3, 3.3), keepdim=True)(mask_rgb_tgt)
