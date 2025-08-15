@@ -6,7 +6,7 @@
 
 <img src="assets/teaser.gif"/> 
 
-**Official code release for CVPR 2024 paper [SiTH](https://ait.ethz.ch/sith)**.
+**Officcial code release for CVPR 2024 paper [SiTH](https://ait.ethz.ch/sith)**.
 
 
 What you can find in this repo:
