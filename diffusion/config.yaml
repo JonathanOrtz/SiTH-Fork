@@ -5,7 +5,7 @@ global:
   seed: 2434
 
 dataset:
-  train_data_dir: '/mnt/fast/nobackup/scratch4weeks/mp01223/synHOI_inpainting_final'
+  train_data_dir: '/parallel_scratch/jo01035/thuman2_36views'
   test_data_dir: '/mnt/fast/nobackup/scratch4weeks/mp01223/synHOI_inpainting_final_test_red'
   dataloader_num_workers: 8
   resolution: 512
